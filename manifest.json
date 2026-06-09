@@ -1,0 +1,10 @@
+{
+  "id": "ai-enhancer",
+  "name": "AI Enhancer",
+  "version": "1.0.1",
+  "minAppVersion": "1.0.0",
+  "description": "AI-powered formula completion, smart term linking, and real-time MD structuring using Gemini or DeepSeek.",
+  "author": "Taizong-Tang",
+  "authorUrl": "https://github.com/Taizong-Tang",
+  "isDesktopOnly": false
+}
