@@ -1,5 +1,6 @@
 import { App, Editor, MarkdownView } from "obsidian";
-import { ChildProcess, spawn } from "child_process";
+import { spawn } from "child_process";
+import type { ChildProcess, SpawnOptionsWithoutStdio } from "child_process";
 
 export interface FormulaReceiverSettings {
   formulaBridgePath: string;
@@ -10,6 +11,7 @@ export class FormulaReceiver {
   private app: App;
   private settings: FormulaReceiverSettings;
   private process: ChildProcess | null = null;
+  private stdoutBuffer = "";
 
   constructor(app: App, settings: FormulaReceiverSettings) {
     this.app = app;
@@ -19,15 +21,17 @@ export class FormulaReceiver {
   start() {
     if (this.process || !this.settings.formulaBridgePath) return;
 
-    const command = this.settings.formulaBridgePath.endsWith(".js") ? "node" : this.settings.formulaBridgePath;
-    const args = this.settings.formulaBridgePath.endsWith(".js") ? [this.settings.formulaBridgePath] : [];
+    const bridge = resolveBridgeCommand(this.settings.formulaBridgePath);
 
-    this.process = spawn(command, args, {
+    this.process = spawn(bridge.command, bridge.args, {
       stdio: ["ignore", "pipe", "pipe"],
+      shell: bridge.shell,
     });
 
     this.process.stdout?.on("data", (data: Buffer) => {
-      const lines = data.toString().split("\n");
+      this.stdoutBuffer += data.toString();
+      const lines = this.stdoutBuffer.split(/\r?\n/);
+      this.stdoutBuffer = lines.pop() ?? "";
       for (const line of lines) {
         const match = line.match(/^FORMULA:(.+)$/);
         if (match) {
@@ -41,9 +45,16 @@ export class FormulaReceiver {
       console.log("[formula-bridge]", data.toString());
     });
 
+    this.process.on("error", (error) => {
+      console.error(`[formula-bridge] failed to start: ${error.message}`);
+      this.process = null;
+      this.stdoutBuffer = "";
+    });
+
     this.process.on("exit", (code) => {
       console.log(`[formula-bridge] process exited, code=${code}`);
       this.process = null;
+      this.stdoutBuffer = "";
     });
   }
 
@@ -55,6 +66,7 @@ export class FormulaReceiver {
   stop() {
     this.process?.kill();
     this.process = null;
+    this.stdoutBuffer = "";
   }
 
   private insertFormula(latex: string) {
@@ -82,4 +94,19 @@ export class FormulaReceiver {
     editor.setCursor(newCursor);
     editor.focus();
   }
+}
+
+function resolveBridgeCommand(bridgePath: string): { command: string; args: string[]; shell: SpawnOptionsWithoutStdio["shell"] } {
+  const path = bridgePath.trim();
+  const lower = path.toLowerCase();
+
+  if (lower.endsWith(".js")) {
+    return { command: process.platform === "win32" ? "node.exe" : "node", args: [path], shell: false };
+  }
+
+  if (process.platform === "win32" && (lower.endsWith(".cmd") || lower.endsWith(".bat"))) {
+    return { command: path, args: [], shell: true };
+  }
+
+  return { command: path, args: [], shell: false };
 }
