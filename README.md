@@ -1,4 +1,4 @@
-# AI Enhancer for Obsidian
+# ResearchObsidian
 
 一个面向学习笔记的 Obsidian 插件，提供公式补全、术语自动标记、Markdown 结构整理、快捷键问答/续写、极简 Agent 指令框，以及可选的手写公式输入链路。
 
