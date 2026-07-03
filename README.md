@@ -1,6 +1,6 @@
 # AI Enhancer for Obsidian
 
-一个面向学习笔记的 Obsidian 插件，提供公式补全、术语自动标记、Markdown 结构整理、快捷键问答/续写、极简 Agent 指令框，以及可选的 iPad 手写公式输入链路。
+一个面向学习笔记的 Obsidian 插件，提供公式补全、术语自动标记、Markdown 结构整理、快捷键问答/续写、极简 Agent 指令框，以及可选的手写公式输入链路。
 
 
 ## 功能
@@ -11,7 +11,8 @@
 - **Markdown 结构整理**：按 `Cmd + Shift + S` 整理光标前内容的 Markdown 格式。
 - **快捷键问答/续写**：回答全文最后一个问题，或续写当前文档最后部分。
 - **极简 Agent 指令框**：通过命令或左侧图标呼出一个小输入框，让 Agent 在后台回答或写入当前笔记。
-- **可选手写公式输入**：配合 iPad 端 FormulaBoard 和 Mac helper，把手写公式识别为 LaTeX 后插入 Obsidian。
+- **可选手写公式输入**：配合 iPad 端 FormulaBoard 和桌面 helper，把手写公式识别为 LaTeX 后插入 Obsidian。
+- **Windows 兼容**：插件主体支持 Windows/macOS/Linux 的 Obsidian 桌面端；手写公式 helper 路径支持 `.js`、`.exe`、`.cmd`、`.bat`。
 
 ## 项目结构
 
@@ -24,10 +25,10 @@
 │   ├── termLinker.ts            # 术语抽取和链接
 │   ├── mdStructurer.ts          # Markdown 结构整理
 │   ├── agentCore.ts             # 极简 Agent 后台执行逻辑
-│   └── formulaReceiver.ts       # 接收 Mac helper 输出的 LaTeX
+│   └── formulaReceiver.ts       # 接收桌面 helper 输出的 LaTeX
 ├── FormulaBoard/                # iPad SwiftUI 手写公式输入端
 ├── formula-bridge/              # 旧版 WebSocket bridge
-├── formula-peer-bridge/         # Mac 本地 helper 源码与 Pix2Text 脚本
+├── formula-peer-bridge/         # macOS 本地 helper 源码与 Pix2Text 脚本
 ├── manifest.json                # Obsidian 插件 manifest
 ├── package.json                 # 插件构建脚本
 └── tsconfig.json
@@ -51,14 +52,30 @@ npm run build
 
 1. 在你的 vault 下创建插件目录：
 
+macOS / Linux:
+
 ```bash
 mkdir -p "/path/to/your-vault/.obsidian/plugins/ai-enhancer"
 ```
 
+Windows PowerShell:
+
+```powershell
+New-Item -ItemType Directory -Force "$env:USERPROFILE\Documents\YourVault\.obsidian\plugins\ai-enhancer"
+```
+
 2. 复制必要文件：
+
+macOS / Linux:
 
 ```bash
 cp manifest.json main.js "/path/to/your-vault/.obsidian/plugins/ai-enhancer/"
+```
+
+Windows PowerShell:
+
+```powershell
+Copy-Item manifest.json, main.js "$env:USERPROFILE\Documents\YourVault\.obsidian\plugins\ai-enhancer\"
 ```
 
 3. 打开 Obsidian，进入“设置 -> 第三方插件”，启用 `AI Enhancer`。
@@ -119,17 +136,22 @@ cp manifest.json main.js "/path/to/your-vault/.obsidian/plugins/ai-enhancer/"
 
 Agent 会根据意图决定是只回答，还是把生成内容写入当前光标位置。
 
-## iPad 手写公式链路
+## 手写公式链路
 
 这是可选功能，适合把 iPad 当成手写板：
 
 1. iPad 端 `FormulaBoard` 用于书写公式并发送图片。
-2. Mac helper 接收图片，并调用本地 Pix2Text 识别 LaTeX。
+2. 桌面 helper 接收图片，并调用本地 Pix2Text 识别 LaTeX。
 3. Obsidian 插件接收 `FORMULA:<latex>` 输出，并插入当前笔记。
 
-如需启用，在插件设置中填写 Mac helper 的绝对路径；留空则不启动手写公式接收。
+如需启用，在插件设置中填写桌面 helper 的绝对路径；留空则不启动手写公式接收。插件侧支持以下 helper 形式：
 
-Pix2Text 依赖需要你在 Mac 本地安装：
+- macOS / Linux: 可执行文件、`.js`
+- Windows: `.exe`、`.cmd`、`.bat`、`.js`
+
+> 目前仓库内的 `FormulaBoard` + `formula-peer-bridge` 是 Apple 生态链路：iPad 端使用 Apple 的本地发现/连接能力，`formula-peer-bridge/FormulaPeerBridge.swift` 是 macOS helper。Windows 上插件主体可用；如果要启用手写公式，需要准备一个 Windows helper，让它向 stdout 输出 `FORMULA:<latex>`。
+
+Pix2Text 依赖需要在运行 helper 的电脑本地安装：
 
 ```bash
 python3 -m pip install pix2text
@@ -149,7 +171,7 @@ rg -n "AIza|sk-|api[_-]?key|secret|token|password|/Users/" -g '!node_modules'
 - Obsidian 本地数据
 - `main.js` 构建产物
 - Xcode 用户状态文件
-- Mac helper 本地二进制和模型缓存
+- 桌面 helper 本地二进制和模型缓存
 
 ## 许可证
 

@@ -461,10 +461,10 @@ class AIEnhancerSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("formula-bridge 路径")
-      .setDesc("Mac helper 的绝对路径。留空则不启动手写公式接收；也兼容旧的 server.js")
+      .setDesc("桌面 helper 的绝对路径。留空则不启动手写公式接收；支持 .js、.exe、.cmd、.bat")
       .addText((text) =>
         text
-          .setPlaceholder("/path/to/formula-peer-bridge")
+          .setPlaceholder("/path/to/helper 或 C:\\path\\to\\helper.cmd")
           .setValue(this.plugin.settings.formulaBridgePath)
           .onChange(async (value) => {
             this.plugin.settings.formulaBridgePath = value.trim();
