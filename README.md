@@ -157,22 +157,6 @@ Pix2Text 依赖需要在运行 helper 的电脑本地安装：
 python3 -m pip install pix2text
 ```
 
-## 发布前检查
-
-公开上传前建议确认：
-
-```bash
-rg -n "AIza|sk-|api[_-]?key|secret|token|password|/Users/" -g '!node_modules'
-```
-
-本仓库的 `.gitignore` 已默认排除：
-
-- API/env/secrets 文件
-- Obsidian 本地数据
-- `main.js` 构建产物
-- Xcode 用户状态文件
-- 桌面 helper 本地二进制和模型缓存
-
 ## 许可证
 
 本项目使用 MIT License，详见 [LICENSE](LICENSE)。
